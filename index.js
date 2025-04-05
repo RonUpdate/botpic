@@ -2,22 +2,42 @@ import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import Replicate from 'replicate';
+import fetch from 'node-fetch';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Replicate
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN
-});
+// Асинхронное ожидание результата от Replicate
+const waitForReplicate = async (id) => {
+  const statusUrl = `https://api.replicate.com/v1/predictions/${id}`;
+
+  while (true) {
+    const res = await fetch(statusUrl, {
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const json = await res.json();
+
+    if (json.status === 'succeeded') {
+      return json.output?.[0] || null;
+    }
+
+    if (json.status === 'failed') {
+      throw new Error('🛑 Репликация не удалась');
+    }
+
+    await new Promise((r) => setTimeout(r, 2000)); // ждем 2 сек
+  }
+};
 
 app.post('/generate', async (req, res) => {
   const topic = req.body.topic || 'Идеи для рисования';
@@ -26,36 +46,32 @@ app.post('/generate', async (req, res) => {
     // Заголовок
     const gptTitle = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [
-        { role: 'user', content: `Придумай заголовок для Pinterest-пина на тему "${topic}"` }
-      ]
+      messages: [{ role: 'user', content: `Придумай заголовок для Pinterest-пина на тему "${topic}"` }]
     });
 
     // Описание
     const gptDesc = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [
-        { role: 'user', content: `Напиши описание для Pinterest-пина на тему "${topic}"` }
-      ]
+      messages: [{ role: 'user', content: `Напиши описание для Pinterest-пина на тему "${topic}"` }]
     });
 
-    // Генерация изображения через SDXL (актуальная версия)
-    const output = await replicate.run(
-      'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
-      {
+    // 1. Создание предсказания
+    const predictionRes = await fetch('https://api.replicate.com/v1/predictions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        version: '7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc', // актуальная SDXL
         input: { prompt: topic }
-      }
-    );
+      })
+    });
 
-    console.log('🎨 Replicate output:', output);
+    const prediction = await predictionRes.json();
 
-    let image_url = null;
-
-    if (Array.isArray(output) && output.length > 0 && typeof output[0] === 'string') {
-      image_url = output[0];
-    } else {
-      console.warn('⚠️ Картинка не получена или результат пустой');
-    }
+    // 2. Ожидаем завершения
+    const image_url = await waitForReplicate(prediction.id);
 
     res.json({
       title: gptTitle.choices[0].message.content,
