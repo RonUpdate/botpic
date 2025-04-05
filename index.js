@@ -41,7 +41,7 @@ app.post('/generate', async (req, res) => {
 
     // Генерация изображения через Replicate (SDXL)
     const output = await replicate.run(
-      'stability-ai/sdxl:db21e45c-f2ac-418d-92c8-384b2c6d03b8',
+      'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
       {
         input: { prompt: topic }
       }
