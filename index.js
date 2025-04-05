@@ -39,9 +39,9 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация изображения через stable-diffusion-xl
+    // Генерация изображения через Replicate (SDXL)
     const output = await replicate.run(
-      'stability-ai/stable-diffusion-xl',
+      'stability-ai/sdxl:db21e45c-f2ac-418d-92c8-384b2c6d03b8',
       {
         input: { prompt: topic }
       }
