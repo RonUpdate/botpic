@@ -39,22 +39,25 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Картинка через fal.ai
-    const response = await fetch("https://api.fal.ai/v1/run/fal-ai/fast-sdxl", {
+    // Генерация изображения через Replicate
+    const replicateResponse = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
-        Authorization: `Key ${process.env.FAL_API_KEY}`,
+        Authorization: `Token ${process.env.REPLICATE_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        input: { prompt: topic }
+        version: "db21e45c-f2ac-418d-92c8-384b2c6d03b8", // SDXL 1.0
+        input: {
+          prompt: topic
+        }
       })
     });
 
-    const imageJson = await response.json();
-    const image_url = imageJson.images?.[0]?.url || null;
+    const replicateJson = await replicateResponse.json();
 
-    // Ответ
+    const image_url = replicateJson.output?.[0] || null;
+
     res.json({
       title: gptTitle.choices[0].message.content,
       description: gptDesc.choices[0].message.content,
