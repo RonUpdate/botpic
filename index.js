@@ -23,7 +23,7 @@ app.post('/generate', async (req, res) => {
   const topic = req.body.topic || 'Идеи для рисования';
 
   try {
-    // Генерация заголовка
+    // Заголовок
     const gptTitle = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -31,7 +31,7 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация описания
+    // Описание
     const gptDesc = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -39,9 +39,9 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация изображения через Replicate (дёшево и быстро)
+    // Генерация изображения через flux-schnell
     const output = await replicate.run(
-      'black-forest-labs/flux-redux-schnell',
+      'black-forest-labs/flux-schnell',
       {
         input: { prompt: topic }
       }
