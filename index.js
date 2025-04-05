@@ -1,7 +1,10 @@
-const express = require("express");
-const { Configuration, OpenAIApi } = require("openai");
-const fetch = require("node-fetch");
-require("dotenv").config();
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
+import { Configuration, OpenAIApi } from 'openai';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -30,9 +33,7 @@ app.post("/generate", async (req, res) => {
         "Authorization": `Key ${process.env.FAL_API_KEY}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        input: { prompt: topic }
-      })
+      body: JSON.stringify({ input: { prompt: topic } })
     });
 
     const json = await response.json();
