@@ -39,9 +39,9 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация изображения через flux-dev
+    // Генерация изображения через stable-diffusion-xl
     const output = await replicate.run(
-      'black-forest-labs/flux-dev',
+      'stability-ai/stable-diffusion-xl',
       {
         input: { prompt: topic }
       }
