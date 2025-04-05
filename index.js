@@ -14,7 +14,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Replicate SDK
+// Replicate
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN
 });
@@ -23,7 +23,7 @@ app.post('/generate', async (req, res) => {
   const topic = req.body.topic || 'Идеи для рисования';
 
   try {
-    // Заголовок
+    // Генерация заголовка
     const gptTitle = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -31,7 +31,7 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Описание
+    // Генерация описания
     const gptDesc = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -39,9 +39,9 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация картинки через Replicate SDK
+    // Генерация изображения через Replicate (дёшево и быстро)
     const output = await replicate.run(
-      'stability-ai/sdxl', // можешь заменить на другую модель
+      'black-forest-labs/flux-redux-schnell',
       {
         input: { prompt: topic }
       }
