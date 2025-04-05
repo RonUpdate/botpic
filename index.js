@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import fetch from 'node-fetch';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.post('/generate', async (req, res) => {
   const topic = req.body.topic || 'Идеи для рисования';
 
   try {
+    // Заголовок
     const gptTitle = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -26,6 +28,7 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
+    // Описание
     const gptDesc = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -36,9 +39,22 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // ❌ Временное отключение генерации картинки
-    const image_url = null;
+    // Картинка через fal.ai
+    const response = await fetch("https://api.fal.ai/v1/run/fal-ai/fast-sdxl", {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${process.env.FAL_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        input: { prompt: topic }
+      })
+    });
 
+    const imageJson = await response.json();
+    const image_url = imageJson.images?.[0]?.url || null;
+
+    // Ответ
     res.json({
       title: gptTitle.choices[0].message.content,
       description: gptDesc.choices[0].message.content,
