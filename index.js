@@ -47,7 +47,15 @@ app.post('/generate', async (req, res) => {
       }
     );
 
-    const image_url = Array.isArray(output) ? output[0] : null;
+    console.log('🎨 Replicate output:', output);
+
+    let image_url = null;
+
+    if (Array.isArray(output) && output.length > 0 && typeof output[0] === 'string') {
+      image_url = output[0];
+    } else {
+      console.warn('⚠️ Картинка не получена или результат пустой');
+    }
 
     res.json({
       title: gptTitle.choices[0].message.content,
