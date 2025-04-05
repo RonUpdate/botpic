@@ -39,9 +39,9 @@ app.post('/generate', async (req, res) => {
       ]
     });
 
-    // Генерация изображения через flux-schnell
+    // Генерация изображения через flux-dev
     const output = await replicate.run(
-      'black-forest-labs/flux-schnell',
+      'black-forest-labs/flux-dev',
       {
         input: { prompt: topic }
       }
